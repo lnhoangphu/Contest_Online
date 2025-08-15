@@ -1,0 +1,224 @@
+import { Request, Response } from 'express';
+import UserService from './user.service';
+import { logger } from '@/utils/logger';
+
+class UserController {
+  private userService: UserService;
+
+  constructor() {
+    this.userService = new UserService();
+  }
+
+  // Get all users
+  async getAllUsers(req: Request, res: Response) {
+    try {
+      const users = await this.userService.getAllUsers();
+      res.json({
+        success: true,
+        message: 'Users retrieved successfully',
+        data: users
+      });
+    } catch (error) {
+      logger.error('Error getting all users:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to retrieve users'
+        }
+      });
+    }
+  }
+
+  // Get user by ID
+  async getUserById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const user = await this.userService.getUserById(id);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User not found'
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'User retrieved successfully',
+        data: user
+      });
+    } catch (error) {
+      logger.error('Error getting user by ID:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to retrieve user'
+        }
+      });
+    }
+  }
+
+  // Get current user profile
+  async getCurrentUserProfile(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated'
+          }
+        });
+      }
+
+      const user = await this.userService.getUserById(userId);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User not found'
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'User profile retrieved successfully',
+        data: user
+      });
+    } catch (error) {
+      logger.error('Error getting current user profile:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to retrieve user profile'
+        }
+      });
+    }
+  }
+
+  // Update user
+  async updateUser(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      const updatedUser = await this.userService.updateUser(id, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User not found'
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'User updated successfully',
+        data: updatedUser
+      });
+    } catch (error) {
+      logger.error('Error updating user:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update user'
+        }
+      });
+    }
+  }
+
+  // Update current user profile
+  async updateCurrentUserProfile(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated'
+          }
+        });
+      }
+
+      const updateData = req.body;
+      const updatedUser = await this.userService.updateUser(userId, updateData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User not found'
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'User profile updated successfully',
+        data: updatedUser
+      });
+    } catch (error) {
+      logger.error('Error updating current user profile:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update user profile'
+        }
+      });
+    }
+  }
+
+  // Delete user
+  async deleteUser(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const deletedUser = await this.userService.deleteUser(id);
+      
+      if (!deletedUser) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User not found'
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'User deleted successfully',
+        data: deletedUser
+      });
+    } catch (error) {
+      logger.error('Error deleting user:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete user'
+        }
+      });
+    }
+  }
+}
+
+export default UserController;
